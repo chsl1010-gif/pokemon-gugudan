@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>포켓몬 구구단</title>
+<meta name="description" content="구구단 문제를 맞혀 야생 포켓몬을 잡는 어린이용 구구단 놀이">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one bright field screen — home grid of wild Pokémon (one per 단), battle scene above a Game Boy–style dialog box with four big answer buttons. Single deliberate daytime theme. */
+:root {
+  --sky: #CDEBFF;
+  --sky-2: #EEF8FF;
+  --grass: #8CD06A;
+  --grass-dark: #5DA444;
+  --paper: #FFFDF4;
+  --ink: #23304A;
+  --ink-soft: #5B6680;
+  --red: #E3350D;
+  --yellow: #FFCB05;
+  --blue: #2A75BB;
+  --good: #2FA35B;
+  --bad: #D64545;
+  --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+html, body { min-height: 100%; }
+body { margin: 0; }
+body {
+  background: linear-gradient(180deg, var(--sky) 0%, var(--sky-2) 55%, #E4F6D8 100%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+button { font-family: var(--font-display); color: var(--ink); cursor: pointer; }
+button:focus-visible { outline: 4px solid var(--blue); outline-offset: 3px; }
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); margin: 0; letter-spacing: 0.5px;
+  color: var(--yellow); -webkit-text-stroke: 2px var(--blue); paint-order: stroke fill; text-shadow: 3px 3px 0 var(--blue); }
+.head-tools { display: flex; gap: 8px; align-items: center; }
+.chip { font-family: var(--font-display); background: var(--paper); border: 3px solid var(--ink); border-radius: 999px; padding: 6px 14px; font-size: 16px; }
+.chip.btn:hover { background: var(--yellow); }
+
+/* Pokéball */
+.ball { --s: 34px; width: var(--s); height: var(--s); border-radius: 50%; border: calc(var(--s) * .08) solid var(--ink); position: relative; flex: none;
+  background: linear-gradient(180deg, var(--red) 0 45%, var(--ink) 45% 55%, #fff 55% 100%); }
+.ball::after { content: ""; position: absolute; width: 34%; height: 34%; left: 33%; top: 33%; border-radius: 50%; background: #fff; border: calc(var(--s) * .07) solid var(--ink); box-sizing: border-box; }
+
+/* Home */
+.intro { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 14px 18px; font-size: 17px; line-height: 1.6; box-shadow: 0 5px 0 var(--ink); }
+.intro b { font-family: var(--font-display); font-weight: 400; color: var(--red); }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 10px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  box-shadow: 0 5px 0 var(--ink); transition: transform .12s, box-shadow .12s; position: relative; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 0 var(--ink); }
+.card:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+.card .dan { font-family: var(--font-display); font-size: 26px; line-height: 1; }
+.card .nm { font-family: var(--font-body); font-size: 15px; color: var(--ink-soft); min-height: 1.3em; }
+.card .stars { font-size: 16px; letter-spacing: 2px; color: #E8B100; min-height: 1.2em; }
+.card .art { width: 100%; max-width: 120px; aspect-ratio: 1; }
+.card.mixed { background: var(--yellow); }
+.card.mixed .nm { color: var(--ink); }
+.sil svg { filter: brightness(0); opacity: .22; }
+.caught-tag { position: absolute; top: 8px; right: 8px; --s: 20px; }
+
+/* Battle */
+.scene { position: relative; border: 3px solid var(--ink); border-radius: 22px; overflow: hidden; height: 300px;
+  background: linear-gradient(180deg, #9FD8FF 0%, #D9F1FF 58%, var(--grass) 58%, var(--grass-dark) 100%); box-shadow: 0 5px 0 var(--ink); }
+.scene .pad { position: absolute; left: 50%; bottom: 26px; width: 260px; height: 54px; transform: translateX(-50%); border-radius: 50%; background: var(--grass-dark); box-shadow: inset 0 -6px 0 rgba(0,0,0,.12); }
+.scene .mon { position: absolute; left: 50%; bottom: 40px; width: 200px; height: 200px; transform: translateX(-50%); }
+.scene .mon svg { width: 100%; height: 100%; display: block; }
+.plate { position: absolute; left: 14px; top: 14px; background: var(--paper); border: 3px solid var(--ink); border-radius: 12px; padding: 8px 12px; min-width: 190px; max-width: calc(100% - 28px); }
+.plate .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: var(--font-display); }
+.plate .nm { font-size: 20px; }
+.plate .lv { font-size: 15px; color: var(--ink-soft); }
+.hp { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-family: var(--font-display); font-size: 13px; color: var(--yellow); }
+.hp span { background: var(--ink); padding: 0 5px; border-radius: 4px; }
+.hpbar { flex: 1; height: 10px; border: 2px solid var(--ink); border-radius: 6px; background: #ddd; overflow: hidden; }
+.hpbar i { display: block; height: 100%; width: 100%; background: var(--good); transition: width .45s ease, background .3s; }
+.ballshot { position: absolute; left: 50%; bottom: 52px; --s: 56px; transform: translateX(-50%); }
+.backbtn { position: absolute; right: 14px; top: 14px; }
+
+.dialog { background: var(--paper); border: 4px solid var(--ink); border-radius: 18px; padding: 16px; box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 7px var(--blue), 0 5px 0 var(--ink); display: flex; flex-direction: column; gap: 14px; }
+.msg { font-family: var(--font-display); font-size: 19px; min-height: 1.5em; text-align: center; }
+.msg.good { color: var(--good); }
+.msg.bad { color: var(--bad); }
+.q { font-family: var(--font-display); font-size: clamp(44px, 12vw, 64px); text-align: center; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.q .op { color: var(--red); }
+.q .ans { display: inline-block; min-width: 1.3em; color: var(--blue); }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.choice { font-size: clamp(30px, 8vw, 40px); padding: 12px 0; background: #fff; border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 5px 0 var(--ink); font-variant-numeric: tabular-nums; transition: transform .1s, box-shadow .1s, background .15s; }
+.choice:hover:not(:disabled) { background: #FFF3B8; }
+.choice:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.choice:disabled { cursor: default; }
+.choice.right { background: var(--good); color: #fff; }
+.choice.wrong { background: var(--bad); color: #fff; opacity: .85; }
+.tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dots { display: flex; gap: 5px; flex-wrap: wrap; }
+.dots i { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--ink); background: #fff; }
+.dots i.done { background: var(--red); }
+.hintbox { background: #EAF5FF; border: 2px dashed var(--blue); border-radius: 12px; padding: 10px 12px; font-size: 16px; line-height: 1.5; }
+.hintbox .rows { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
+.hintbox .r { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; }
+.hintbox .r b { width: 9px; height: 9px; border-radius: 50%; background: var(--yellow); border: 1.5px solid var(--ink); }
+.hintbox .r em { font-style: normal; font-family: var(--font-display); color: var(--ink-soft); margin-left: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* Result */
+.result { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.result h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 7vw, 38px); margin: 0; text-wrap: balance; }
+.result .big-stars { font-size: 40px; letter-spacing: 6px; color: #E8B100; -webkit-text-stroke: 1.5px var(--ink); }
+.result .art { width: 170px; height: 170px; }
+.result p { margin: 0; font-size: 17px; color: var(--ink-soft); }
+.row-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.primary { font-size: 22px; padding: 10px 22px; background: var(--yellow); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 5px 0 var(--ink); }
+.primary.alt { background: #fff; }
+.primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+
+/* Animations */
+.hit { animation: hit .5s; }
+@keyframes hit { 0%,100% { transform: translateX(-50%); filter: none; } 20% { transform: translateX(calc(-50% - 12px)); filter: brightness(2.2); } 40% { transform: translateX(calc(-50% + 10px)); filter: none; } 60% { transform: translateX(calc(-50% - 6px)); filter: brightness(2.2); } }
+.dodge { animation: dodge .6s; }
+@keyframes dodge { 0%,100% { transform: translateX(-50%); } 35% { transform: translateX(calc(-50% + 60px)) rotate(8deg); } 65% { transform: translateX(calc(-50% + 60px)) rotate(8deg); } }
+.idle { animation: idle 2.4s ease-in-out infinite; }
+@keyframes idle { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
+.suck { animation: suck .6s forwards; }
+@keyframes suck { to { transform: translateX(-50%) scale(0); opacity: 0; filter: brightness(3); } }
+.wobble { animation: drop .5s ease-in, wobble 1.8s .5s ease-in-out; }
+@keyframes drop { from { transform: translateX(-50%) translateY(-200px); } to { transform: translateX(-50%) translateY(0); } }
+@keyframes wobble { 0%,30%,60%,100% { transform: translateX(-50%) rotate(0); } 10%,40%,70% { transform: translateX(-50%) rotate(-22deg); } 20%,50%,80% { transform: translateX(-50%) rotate(22deg); } }
+.shake { animation: shake .4s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.pop { animation: pop .5s; }
+@keyframes pop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+footer { text-align: center; font-size: 13px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="ball" aria-hidden="true"></div><h1>포켓몬 구구단</h1></div>
+    <div class="head-tools">
+      <span class="chip" id="dex">도감 0 / 8</span>
+      <button class="chip btn" id="sound" type="button">소리 켜짐</button>
+    </div>
+  </header>
+
+  <!-- Home -->
+  <section id="home" class="wrap" style="gap:16px">
+    <div class="intro">야생 포켓몬이 나타났다! 단을 골라서 <b>문제를 맞히면</b> 포켓몬의 체력이 줄어들어요. 체력을 모두 깎으면 몬스터볼로 <b>잡을 수 있어요.</b> 8마리를 모두 잡아 도감을 채워 봐요!</div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- Battle -->
+  <section id="battle" hidden>
+    <div class="wrap" style="gap:16px">
+      <div class="scene" id="scene">
+        <div class="pad"></div>
+        <div class="mon idle" id="mon"></div>
+        <div class="ball ballshot" id="ballshot" hidden></div>
+        <div class="plate">
+          <div class="row"><span class="nm" id="mname">피카츄</span><span class="lv" id="mlv">2단</span></div>
+          <div class="hp"><span>HP</span><div class="hpbar"><i id="hpfill"></i></div></div>
+        </div>
+        <button class="chip btn backbtn" id="back" type="button">그만하기</button>
+      </div>
+      <div class="dialog" id="dialog">
+        <div class="msg" id="msg">야생의 피카츄가 나타났다!</div>
+        <div class="q" id="q" aria-live="polite"></div>
+        <div class="choices" id="choices"></div>
+        <div class="tools">
+          <div class="dots" id="dots" aria-label="진행 상황"></div>
+          <button class="chip btn" id="hintBtn" type="button">힌트 보기</button>
+        </div>
+        <div class="hintbox" id="hint" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section id="result" hidden>
+    <div class="dialog result">
+      <div class="art pop" id="rart"></div>
+      <h2 id="rtitle">피카츄를 잡았다!</h2>
+      <div class="big-stars" id="rstars">★★★</div>
+      <p id="rnote"></p>
+      <div class="row-btns">
+        <button class="primary" id="again" type="button">한 번 더</button>
+        <button class="primary alt" id="home2" type="button">다른 단 고르기</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>팬이 만든 비공식 학습 놀이예요. 포켓몬은 Nintendo · Creatures · GAME FREAK의 상표입니다.</footer>
+</div>
+
+<script>
+const S = 'stroke="#23304A" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+const svg = inner => `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g ${S}>${inner}</g></svg>`;
+const eye = (x, y, rx = 7, ry = 9, c = '#23304A') => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${c}"/><circle cx="${x - 2}" cy="${y - 3}" r="2.6" fill="#fff" stroke="none"/>`;
+
+const ART = {
+  pikachu: svg(`
+    <path d="M132 150 L176 116 L160 106 L188 72 L148 84 L160 98 L124 132Z" fill="#FFD43B"/>
+    <path d="M72 78 L42 22 L90 66Z" fill="#FFD43B"/><path d="M42 22 L52.5 40.5 L58.8 37.4Z" fill="#23304A"/>
+    <path d="M128 78 L158 22 L110 66Z" fill="#FFD43B"/><path d="M158 22 L147.5 40.5 L141.2 37.4Z" fill="#23304A"/>
+    <ellipse cx="80" cy="182" rx="15" ry="7" fill="#FFD43B"/><ellipse cx="120" cy="182" rx="15" ry="7" fill="#FFD43B"/>
+    <ellipse cx="100" cy="150" rx="40" ry="35" fill="#FFD43B"/>
+    <ellipse cx="72" cy="146" rx="9" ry="7" fill="#FFD43B"/><ellipse cx="128" cy="146" rx="9" ry="7" fill="#FFD43B"/>
+    <ellipse cx="100" cy="100" rx="48" ry="40" fill="#FFD43B"/>
+    ${eye(80, 94)}${eye(120, 94)}
+    <circle cx="66" cy="114" r="9" fill="#E8483A"/><circle cx="134" cy="114" r="9" fill="#E8483A"/>
+    <circle cx="100" cy="104" r="1.8" fill="#23304A"/>
+    <path d="M90 112 Q95 118 100 112 Q105 118 110 112" fill="none"/>`),
+  charmander: svg(`
+    <path d="M128 162 Q172 166 170 118" fill="none" stroke-width="16"/>
+    <path d="M128 162 Q172 166 170 118" fill="none" stroke="#F38B3C" stroke-width="10"/>
+    <path d="M170 122 Q150 102 166 72 Q170 88 180 82 Q192 104 170 122Z" fill="#FF5A1F"/>
+    <path d="M170 116 Q160 104 168 90 Q172 98 178 96 Q182 108 170 116Z" fill="#FFD43B" stroke="none"/>
+    <ellipse cx="82" cy="182" rx="15" ry="8" fill="#F38B3C"/><ellipse cx="118" cy="182" rx="15" ry="8" fill="#F38B3C"/>
+    <ellipse cx="100" cy="148" rx="36" ry="36" fill="#F38B3C"/>
+    <ellipse cx="100" cy="154" rx="23" ry="25" fill="#F8D98E"/>
+    <ellipse cx="66" cy="138" rx="10" ry="7" fill="#F38B3C"/><ellipse cx="134" cy="138" rx="10" ry="7" fill="#F38B3C"/>
+    <ellipse cx="100" cy="88" rx="42" ry="38" fill="#F38B3C"/>
+    ${eye(83, 84, 7, 10)}${eye(117, 84, 7, 10)}
+    <path d="M84 104 Q100 116 116 104" fill="none"/>`),
+  bulbasaur: svg(`
+    <ellipse cx="118" cy="92" rx="40" ry="38" fill="#5DBB63"/>
+    <path d="M118 56 Q106 92 118 130 M118 56 Q132 92 118 130" fill="none"/>
+    <ellipse cx="72" cy="172" rx="14" ry="13" fill="#7CC7A9"/><ellipse cx="150" cy="172" rx="14" ry="13" fill="#7CC7A9"/>
+    <ellipse cx="114" cy="146" rx="54" ry="30" fill="#7CC7A9"/>
+    <ellipse cx="128" cy="140" rx="9" ry="5" fill="#4F9A82" stroke="none"/><ellipse cx="148" cy="152" rx="6" ry="4" fill="#4F9A82" stroke="none"/>
+    <path d="M44 100 L40 76 L60 92Z" fill="#7CC7A9"/><path d="M94 92 L106 74 L108 98Z" fill="#7CC7A9"/>
+    <ellipse cx="72" cy="122" rx="42" ry="32" fill="#7CC7A9"/>
+    <ellipse cx="74" cy="100" rx="6" ry="4" fill="#4F9A82" stroke="none"/>
+    ${eye(55, 120, 7, 9, '#C8323C')}${eye(89, 120, 7, 9, '#C8323C')}
+    <path d="M60 138 Q72 148 84 138" fill="none"/>`),
+  squirtle: svg(`
+    <circle cx="164" cy="150" r="15" fill="#7EC8E3"/><path d="M164 150 m-6 0 a6 6 0 1 1 6 6" fill="none" stroke-width="2.5"/>
+    <ellipse cx="80" cy="182" rx="15" ry="8" fill="#7EC8E3"/><ellipse cx="120" cy="182" rx="15" ry="8" fill="#7EC8E3"/>
+    <ellipse cx="100" cy="148" rx="44" ry="38" fill="#B5733B"/>
+    <ellipse cx="100" cy="150" rx="30" ry="30" fill="#F2DFA0"/>
+    <path d="M73 140 H127 M73 158 H127" fill="none" stroke-width="2.5"/>
+    <ellipse cx="56" cy="138" rx="12" ry="9" fill="#7EC8E3"/><ellipse cx="144" cy="138" rx="12" ry="9" fill="#7EC8E3"/>
+    <circle cx="100" cy="86" r="38" fill="#7EC8E3"/>
+    ${eye(85, 84, 7, 10, '#7A2E2E')}${eye(115, 84, 7, 10, '#7A2E2E')}
+    <path d="M88 104 Q100 113 112 104" fill="none"/>`),
+  jigglypuff: svg(`
+    <path d="M60 72 L50 30 L90 54Z" fill="#F7B6C8"/><path d="M140 72 L150 30 L110 54Z" fill="#F7B6C8"/>
+    <ellipse cx="78" cy="172" rx="17" ry="9" fill="#F7B6C8"/><ellipse cx="122" cy="172" rx="17" ry="9" fill="#F7B6C8"/>
+    <ellipse cx="40" cy="122" rx="11" ry="8" fill="#F7B6C8"/><ellipse cx="160" cy="122" rx="11" ry="8" fill="#F7B6C8"/>
+    <circle cx="100" cy="110" r="62" fill="#F7B6C8"/>
+    <path d="M100 50 Q82 60 94 76 Q112 82 110 66 Q106 56 98 63" fill="none" stroke-width="4"/>
+    <circle cx="76" cy="108" r="16" fill="#3BB8C4"/><circle cx="124" cy="108" r="16" fill="#3BB8C4"/>
+    <circle cx="71" cy="102" r="5.5" fill="#fff" stroke="none"/><circle cx="119" cy="102" r="5.5" fill="#fff" stroke="none"/>
+    <path d="M92 140 Q100 147 108 140" fill="none"/>`),
+  eevee: svg(`
+    <ellipse cx="152" cy="124" rx="22" ry="34" fill="#B07A45" transform="rotate(32 152 124)"/>
+    <ellipse cx="164" cy="98" rx="13" ry="15" fill="#F3E2B8"/>
+    <ellipse cx="82" cy="182" rx="13" ry="7" fill="#B07A45"/><ellipse cx="118" cy="182" rx="13" ry="7" fill="#B07A45"/>
+    <ellipse cx="100" cy="152" rx="34" ry="30" fill="#B07A45"/>
+    <path d="M66 120 Q58 140 76 142 Q80 156 92 148 Q100 160 108 148 Q120 156 124 142 Q142 140 134 120Z" fill="#F3E2B8"/>
+    <path d="M76 78 L46 16 L96 64Z" fill="#B07A45"/><path d="M70 66 L52 30 L86 62Z" fill="#6B4424" stroke="none"/>
+    <path d="M124 78 L154 16 L104 64Z" fill="#B07A45"/><path d="M130 66 L148 30 L114 62Z" fill="#6B4424" stroke="none"/>
+    <ellipse cx="100" cy="94" rx="38" ry="32" fill="#B07A45"/>
+    ${eye(86, 92, 6, 8, '#4A2A14')}${eye(114, 92, 6, 8, '#4A2A14')}
+    <circle cx="100" cy="102" r="1.8" fill="#23304A"/>
+    <path d="M94 107 Q100 112 106 107" fill="none"/>`),
+  psyduck: svg(`
+    <path d="M70 140 Q48 110 58 74 M130 140 Q152 110 142 74" fill="none" stroke-width="18"/>
+    <path d="M70 140 Q48 110 58 74 M130 140 Q152 110 142 74" fill="none" stroke="#F5D547" stroke-width="12"/>
+    <ellipse cx="80" cy="182" rx="17" ry="8" fill="#F7E6B0"/><ellipse cx="120" cy="182" rx="17" ry="8" fill="#F7E6B0"/>
+    <ellipse cx="100" cy="150" rx="40" ry="34" fill="#F5D547"/>
+    <circle cx="100" cy="88" r="42" fill="#F5D547"/>
+    <path d="M92 47 Q88 32 80 28 M100 46 Q100 28 106 22 M108 47 Q114 32 122 30" fill="none"/>
+    <ellipse cx="58" cy="72" rx="13" ry="11" fill="#F5D547"/><ellipse cx="142" cy="72" rx="13" ry="11" fill="#F5D547"/>
+    <circle cx="82" cy="82" r="10" fill="#fff"/><circle cx="118" cy="82" r="10" fill="#fff"/>
+    <circle cx="82" cy="82" r="2.6" fill="#23304A" stroke="none"/><circle cx="118" cy="82" r="2.6" fill="#23304A" stroke="none"/>
+    <ellipse cx="100" cy="106" rx="21" ry="11" fill="#F7E6B0"/>
+    <path d="M82 106 H118" fill="none" stroke-width="2"/>`),
+  snorlax: svg(`
+    <path d="M60 54 L56 28 L80 46Z" fill="#2F6E7A"/><path d="M140 54 L144 28 L120 46Z" fill="#2F6E7A"/>
+    <ellipse cx="34" cy="126" rx="15" ry="24" fill="#2F6E7A"/><ellipse cx="166" cy="126" rx="15" ry="24" fill="#2F6E7A"/>
+    <ellipse cx="100" cy="128" rx="68" ry="58" fill="#2F6E7A"/>
+    <ellipse cx="100" cy="142" rx="50" ry="42" fill="#F1E3C3"/>
+    <ellipse cx="62" cy="182" rx="22" ry="12" fill="#F1E3C3"/><ellipse cx="138" cy="182" rx="22" ry="12" fill="#F1E3C3"/>
+    <ellipse cx="100" cy="76" rx="48" ry="36" fill="#2F6E7A"/>
+    <ellipse cx="100" cy="86" rx="38" ry="24" fill="#F1E3C3"/>
+    <path d="M78 82 H94 M106 82 H122" fill="none"/>
+    <path d="M86 96 Q100 104 114 96" fill="none"/>
+    <path d="M90 97 L93 92 L96 99 M110 97 L107 92 L104 99" fill="#fff" stroke-width="2"/>`)
+};
+
+const MONS = [
+  { dan: 2, key: 'pikachu',    name: '피카츄',  josa: '를', move: '10만볼트' },
+  { dan: 3, key: 'charmander', name: '파이리',  josa: '를', move: '불꽃세례' },
+  { dan: 4, key: 'bulbasaur',  name: '이상해씨', josa: '를', move: '덩굴채찍' },
+  { dan: 5, key: 'squirtle',   name: '꼬부기',  josa: '를', move: '물대포' },
+  { dan: 6, key: 'jigglypuff', name: '푸린',    josa: '을', move: '노래하기' },
+  { dan: 7, key: 'eevee',      name: '이브이',  josa: '를', move: '전광석화' },
+  { dan: 8, key: 'psyduck',    name: '고라파덕', josa: '을', move: '염동력' },
+  { dan: 9, key: 'snorlax',    name: '잠만보',  josa: '를', move: '누르기' }
+];
+
+const $ = id => document.getElementById(id);
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem('gugudan-dex') || '{}'); } catch { return {}; } },
+  set(v) { try { localStorage.setItem('gugudan-dex', JSON.stringify(v)); } catch {} }
+};
+let dex = store.get();
+let soundOn = true, actx = null;
+
+function beep(notes) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    let t = actx.currentTime;
+    for (const [f, d] of notes) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'square'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d);
+      t += d * 0.9;
+    }
+  } catch {}
+}
+const SFX = {
+  good: () => beep([[660, .08], [880, .12]]),
+  bad: () => beep([[220, .15], [180, .2]]),
+  win: () => beep([[523, .12], [659, .12], [784, .12], [1047, .3]])
+};
+
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const starsFor = m => m === 0 ? 3 : m <= 2 ? 2 : 1;
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+function show(id) { for (const s of ['home', 'battle', 'result']) $(s).hidden = s !== id; window.scrollTo(0, 0); }
+
+function renderHome() {
+  const caughtCount = MONS.filter(m => dex[m.key]).length;
+  $('dex').textContent = `도감 ${caughtCount} / ${MONS.length}`;
+  const g = $('grid'); g.innerHTML = '';
+  for (const m of MONS) {
+    const c = dex[m.key];
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'card';
+    b.innerHTML = `${c ? '<div class="ball caught-tag" aria-hidden="true"></div>' : ''}
+      <div class="art ${c ? '' : 'sil'}">${ART[m.key]}</div>
+      <div class="dan">${m.dan}단</div>
+      <div class="nm">${c ? m.name : '???'}</div>
+      <div class="stars">${c ? starStr(c) : ''}</div>`;
+    b.setAttribute('aria-label', `${m.dan}단 ${c ? m.name + ' 잡음' : '아직 못 잡음'}`);
+    b.onclick = () => start(m.dan);
+    g.appendChild(b);
+  }
+  const mx = document.createElement('button');
+  mx.type = 'button'; mx.className = 'card mixed';
+  mx.innerHTML = `<div class="art" style="display:grid;place-items:center"><div class="ball" style="--s:72px"></div></div>
+    <div class="dan">섞어서</div><div class="nm">2단~9단 랜덤</div><div class="stars"></div>`;
+  mx.onclick = () => start(0);
+  g.appendChild(mx);
+}
+
+let G = null;
+
+function start(dan) {
+  const mon = dan ? MONS.find(m => m.dan === dan) : MONS[Math.floor(Math.random() * MONS.length)];
+  let qs;
+  if (dan) qs = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9].map(b => [dan, b]));
+  else { qs = []; while (qs.length < 10) { const a = 2 + Math.floor(Math.random() * 8), b = 1 + Math.floor(Math.random() * 9); if (!qs.some(q => q[0] === a && q[1] === b)) qs.push([a, b]); } }
+  G = { dan, mon, queue: qs, max: qs.length, hp: qs.length, misses: 0, cur: null, lock: false, seen: 0 };
+  $('mon').innerHTML = ART[mon.key];
+  $('mon').className = 'mon idle';
+  $('mon').hidden = false; $('ballshot').hidden = true; $('ballshot').className = 'ball ballshot';
+  $('mname').textContent = mon.name;
+  $('mlv').textContent = dan ? `${dan}단` : '섞어서';
+  updateHp();
+  $('msg').className = 'msg';
+  $('msg').textContent = `앗! 야생의 ${mon.name}${mon.josa === '을' ? '이' : '가'} 나타났다!`;
+  show('battle');
+  next(true);
+}
+
+function updateHp() {
+  const p = G.hp / G.max;
+  const f = $('hpfill');
+  f.style.width = (p * 100) + '%';
+  f.style.background = p > .5 ? 'var(--good)' : p > .2 ? 'var(--yellow)' : 'var(--bad)';
+  const dots = $('dots'); dots.innerHTML = '';
+  for (let i = 0; i < G.max; i++) { const d = document.createElement('i'); if (i < G.max - G.hp) d.className = 'done'; dots.appendChild(d); }
+}
+
+function makeChoices(a, b) {
+  const ans = a * b, set = new Set([ans]);
+  const cands = shuffle([a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, ans + 1, ans - 1, ans + 2, ans - 2, ans + 10, ans - 10]);
+  for (const c of cands) { if (set.size >= 4) break; if (c > 0 && c !== ans) set.add(c); }
+  return shuffle([...set]);
+}
+
+function next(first) {
+  if (!G.queue.length) return win();
+  G.cur = G.queue.shift(); G.lock = false;
+  const [a, b] = G.cur;
+  if (!first) { $('msg').className = 'msg'; $('msg').textContent = `${G.mon.name}의 체력을 깎아 보자!`; }
+  $('q').innerHTML = `${a} <span class="op">×</span> ${b} <span class="op">=</span> <span class="ans">?</span>`;
+  $('hint').hidden = true; $('hintBtn').textContent = '힌트 보기';
+  const box = $('choices'); box.innerHTML = '';
+  for (const v of makeChoices(a, b)) {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'choice'; btn.textContent = v; btn.dataset.v = v;
+    btn.onclick = () => answer(v, btn);
+    box.appendChild(btn);
+  }
+}
+
+function answer(v, btn) {
+  if (G.lock) return; G.lock = true;
+  const [a, b] = G.cur, ans = a * b;
+  const btns = [...$('choices').children];
+  btns.forEach(x => x.disabled = true);
+  $('q').querySelector('.ans').textContent = ans;
+  const mon = $('mon');
+  if (v === ans) {
+    btn.classList.add('right');
+    G.hp--; updateHp(); SFX.good();
+    const lines = ['효과가 굉장했다!', `${G.mon.move}! 명중!`, '정답! 급소에 맞았다!', '잘했어! 한 번 더!'];
+    $('msg').className = 'msg good';
+    $('msg').textContent = lines[Math.floor(Math.random() * lines.length)];
+    mon.className = 'mon'; void mon.offsetWidth; mon.className = 'mon hit';
+    setTimeout(() => { mon.className = 'mon idle'; next(); }, 850);
+  } else {
+    btn.classList.add('wrong');
+    btns.find(x => +x.dataset.v === ans).classList.add('right');
+    G.misses++; G.queue.push(G.cur); SFX.bad();
+    $('msg').className = 'msg bad';
+    $('msg').textContent = `${G.mon.name}${G.mon.josa === '을' ? '이' : '가'} 피했다! ${a} × ${b} = ${ans} 이야`;
+    $('dialog').classList.remove('shake'); void $('dialog').offsetWidth; $('dialog').classList.add('shake');
+    mon.className = 'mon'; void mon.offsetWidth; mon.className = 'mon dodge';
+    setTimeout(() => { mon.className = 'mon idle'; next(); }, 2000);
+  }
+}
+
+function showHint() {
+  const h = $('hint');
+  if (!h.hidden) { h.hidden = true; $('hintBtn').textContent = '힌트 보기'; return; }
+  const [a, b] = G.cur;
+  let rows = '';
+  for (let i = 1; i <= b; i++) rows += `<div class="r">${'<b></b>'.repeat(a)}<em>${a * i}</em></div>`;
+  h.innerHTML = `${a}개씩 ${b}줄이에요. ${a}씩 ${b}번 세어 봐요!<div class="rows">${rows}</div>`;
+  h.hidden = false; $('hintBtn').textContent = '힌트 닫기';
+}
+
+function win() {
+  const mon = $('mon'), ball = $('ballshot');
+  $('msg').className = 'msg good';
+  $('msg').textContent = '가라, 몬스터볼!';
+  $('choices').innerHTML = ''; $('hint').hidden = true;
+  mon.className = 'mon suck';
+  setTimeout(() => { mon.hidden = true; ball.hidden = false; ball.className = 'ball ballshot wobble'; }, 550);
+  setTimeout(() => {
+    const stars = starsFor(G.misses);
+    dex[G.mon.key] = Math.max(dex[G.mon.key] || 0, stars); store.set(dex);
+    SFX.win();
+    $('rart').innerHTML = ART[G.mon.key];
+    $('rart').className = 'art'; void $('rart').offsetWidth; $('rart').className = 'art pop';
+    $('rtitle').textContent = `신난다! ${G.mon.name}${G.mon.josa} 잡았다!`;
+    $('rstars').textContent = starStr(stars);
+    $('rnote').textContent = G.misses === 0 ? '하나도 안 틀렸어요. 구구단 박사!' : `${G.misses}번 틀렸어요. 다시 하면 별 3개도 받을 수 있어요!`;
+    const left = MONS.filter(m => !dex[m.key]).length;
+    if (!left) $('rnote').textContent += ' 도감을 모두 채웠어요!';
+    renderHome();
+    show('result');
+  }, 2900);
+}
+
+$('hintBtn').onclick = showHint;
+$('back').onclick = () => { renderHome(); show('home'); };
+$('home2').onclick = () => { renderHome(); show('home'); };
+$('again').onclick = () => start(G.dan);
+$('sound').onclick = () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '소리 켜짐' : '소리 꺼짐'; };
+document.addEventListener('keydown', e => {
+  if ($('battle').hidden || !G || G.lock) return;
+  const i = +e.key - 1;
+  const btns = [...$('choices').children];
+  if (i >= 0 && i < btns.length) btns[i].click();
+});
+
+renderHome();
+</script>
+</body>
+</html>
